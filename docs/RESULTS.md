@@ -82,13 +82,71 @@ because low-bit types turned this model's output into a repeating loop. Note tha
 ~6.9 tok/s every answer costs real wall-clock time, so reasoning budget is the main
 usability constraint, not correctness.
 
+## The "2-bit on 256 GB" claim — tested
+
+`UD-IQ2_XXS` (210.1 GiB / 225.6 GB, all 6 shards byte-verified against the HF manifest)
+**does load and serve on two Sparks — at 8K context.** Load took 11 min 52 s, slightly longer
+than IQ1_M's 10 min 48 s because there are 8% more bytes to stream.
+
+| Prompt | TTFT | Prefill | Decode |
+|---|---|---|---|
+| 155 tok | 2.49 s | 62.4 tok/s | **7.02 tok/s** (128 tok) |
+| 372 tok | 2.74 s | 135.6 tok/s | **6.98 tok/s** (128 tok) |
+
+Tool calling at 2-bit is intact — `{"city":"Portland, Oregon","unit":"C"}` — and `content` is
+populated ("I'll fetch the Portland weather in Celsius for you.").
+
+Decode is **the same ~7.0 tok/s as IQ1_M**. That is the expected result and a useful one: the
+model is bandwidth-bound on the *active* parameters (42B), so going from 1.75 bpw to 2.0 bpw
+costs nothing at inference time — you pay only in memory.
+
+Memory headroom while serving at 8K, measured:
+
+| Node | Free |
+|---|---|
+| head (IQ2_XXS shards) | 4.90 GiB |
+| peer | **1.90 GiB** |
+
+The peer is the binding constraint. KV here is 126,976 elements/token (62 layers × 16 KV heads
+× 64 head_dim × K and V), i.e. 0.129 MiB/token at q8_0:
+
+| Context | KV/node | Fits? |
+|---|---|---|
+| 8K | 0.53 GiB | **yes — measured** |
+| 32K | 2.06 GiB | no: needs +1.53 GiB on a peer that has 1.90 GiB free (projected, not yet run) |
+
+So the honest headline: **2-bit fits, but not at a large context** — pick `UD-IQ2_XXS` at 8K,
+or `UD-IQ1_M` at 32K with ~10 GiB/node to spare. Neither is a comfortable configuration;
+both are near the ceiling.
+
+## Throughput scaling with `-np 4` (IQ1_M, 32K total context = 8K/slot)
+
+This is the number that matters for agentic/batch use. Same server, `max_tokens=128`, requests
+fired simultaneously:
+
+| Concurrent | Per-request decode | Aggregate | vs c=1 |
+|---|---|---|---|
+| 1 | 7.02 tok/s | 6.08 tok/s | — |
+| 2 | 5.93 / 6.08 | 10.68 tok/s | 1.76× |
+| 3 | 4.91 / 4.92 | 14.30 tok/s | 2.35× |
+| 4 (all slots) | 4.01–4.32 | **14.05 tok/s** | 2.31× |
+| 8 (two waves) | 4.11 / 4.24 | **15.88 tok/s** | 2.61× |
+
+**Batching is worth it.** At `n_slots=1` concurrency bought nothing (3 simultaneous requests →
+6.54 tok/s aggregate, pure queueing). With `-np 4` the aggregate roughly **2.3–2.6×** the
+single-stream rate and saturates at ~14–16 tok/s around 3–4 in-flight requests. The trade is
+per-request latency: each stream slows from 7.0 to ~4.1 tok/s.
+
+Interpretation: at c=1 the 42B active weights are read once per token and the GPU idles waiting
+on memory; batching amortises that read across sequences, so aggregate throughput rises almost
+linearly until the memory system saturates at ~16 tok/s.
+
 ## Open items
 
-1. **The "2-bit on 256 GB" claim.** `UD-IQ2_XXS` is 210.1 GiB versus the 194.6 GiB that
-   runs here, and the pair has only ~19 GB of headroom total. Expected outcome: it either
-   fails to load or needs a much smaller context. Being verified, not assumed.
-2. **Concurrency with `-np 4`** (4 slots × 8K context): whether batching lifts aggregate
-   throughput now that the per-step weight read is amortised.
-3. **`llama-bench` pp512/pp2048/tg128** in the community protocol, for comparability.
-4. **Quality at IQ1_M** — how much the 1.75 bpw quant costs versus the same model at higher
-   precision. Not measured yet; do not quote a quality delta that has not been tested.
+1. ~~The "2-bit on 256 GB" claim.~~ **Answered** — fits at 8K; 32K is out of reach on measured
+   headroom.
+2. ~~Concurrency with `-np 4`.~~ **Answered above** — 2.3–2.6× aggregate, saturating ~3–4 slots.
+3. **`llama-bench` pp512/pp2048/tg128** in the community protocol, for comparability. Not run:
+   each `llama-bench` invocation reloads the model (~11 min).
+4. **Quality at IQ1_M vs IQ2_XXS** — whether the extra 0.25 bpw buys measurable quality. Not
+   measured; do not quote a delta that has not been tested.

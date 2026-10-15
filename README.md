@@ -66,7 +66,7 @@ bash scripts/musespark_rpc.sh      # ggml-rpc-server -H 0.0.0.0 -p 50052 -d CUDA
 ### 4. Serve from the head node
 
 ```bash
-PEER=10.0.1.15 CTX=32768 PORT=8080 bash scripts/musespark_serve.sh
+PEER=10.0.1.15 CTX=32768 NP=4 PORT=8080 bash scripts/musespark_serve.sh
 ```
 
 which runs:
@@ -75,7 +75,7 @@ which runs:
 llama-server -m <shard-00001-of-00006.gguf> \
   --rpc "$PEER:50052,127.0.0.1:50052" --tensor-split 50,50 \
   -ngl 99 -c 32768 -fa on --cache-type-k q8_0 --cache-type-v q8_0 \
-  --host 0.0.0.0 --port 8080 --jinja --no-warmup -np 1 --metrics --slots
+  --host 0.0.0.0 --port 8080 --jinja --no-warmup -np 4 --metrics --slots
 ```
 
 Notes that cost time to learn:
@@ -113,7 +113,10 @@ Client gotchas:
   batch/agentic work with patience; not interactive.
 - **Memory ceiling.** ~10 GB free per node while serving. Do not co-schedule anything else on
   the pair.
-- **One slot** with `-np 1`; concurrent requests queue rather than batch.
+- **One slot with `-np 1`**; concurrent requests queue rather than batch. Use `-np 4`
+  (`-c` is the *total* context, split across slots — `-c 32768 -np 4` = 8K/slot): measured
+  **14–16 tok/s aggregate vs 6.1 at c=1**, saturating at 3–4 in-flight requests, with
+  per-request decode dropping from 7.0 to ~4.1 tok/s.
 - **Weights are not redistributable** under the Muse Model License — this repo ships scripts
   and numbers only, and fetches from Meta/Unsloth's own repos.
 

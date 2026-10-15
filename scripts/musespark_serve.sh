@@ -10,11 +10,12 @@ PORT="${PORT:-8080}"
 CTX="${CTX:-32768}"
 SPLIT="${SPLIT:-50,50}"
 KV="${KV:-q8_0}"
+NP="${NP:-1}"
 
 MODEL=$(ls "$MODEL_DIR"/*-00001-of-*.gguf 2>/dev/null | head -1)
 if [ -z "$MODEL" ]; then echo "NO_MODEL in $MODEL_DIR"; exit 3; fi
 echo "model=$MODEL"
-echo "peer=$PEER ctx=$CTX split=$SPLIT kv=$KV port=$PORT node=$(hostname)"
+echo "peer=$PEER ctx=$CTX split=$SPLIT kv=$KV port=$PORT np=$NP node=$(hostname)"
 
 exec "$BIN/llama-server" \
   -m "$MODEL" \
@@ -26,4 +27,4 @@ exec "$BIN/llama-server" \
   --cache-type-k "$KV" --cache-type-v "$KV" \
   --host 0.0.0.0 --port "$PORT" \
   --jinja --no-warmup \
-  -np 1 --metrics --slots
+  -np "$NP" --metrics --slots

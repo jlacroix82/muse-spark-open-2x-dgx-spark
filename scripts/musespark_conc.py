@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
-"""Concurrency probe against a running llama-server (n_slots=1).
-Fires N requests at once and reports per-request and aggregate timing."""
+"""Concurrency probe against a running llama-server.
+
+Env: N (parallel requests, default 3), MAXTOK (default 48), URL_LABEL (for output).
+Fires N requests at once and reports per-request and aggregate timing.
+With n_slots=1 they serialize; with n_slots>=N they batch.
+"""
 import json
+import os
 import threading
 import time
 import urllib.request
 
 URL = "http://127.0.0.1:8080/v1/chat/completions"
-N = 3
+N = int(os.environ.get("N", "3"))
 PROMPT = "Explain what tensor parallelism does in one short paragraph."
-MAXTOK = 48
+MAXTOK = int(os.environ.get("MAXTOK", "48"))
 
 results = []
 
