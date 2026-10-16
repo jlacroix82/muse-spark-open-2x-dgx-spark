@@ -1,7 +1,7 @@
 # Forum reply — Muse Spark Open on two DGX Sparks
 
-Target: https://forums.developer.nvidia.com/t/385980 (NVIDIA's Muse Spark Open /
-GB300 NVL72 announcement). Also usable as a standalone DGX Spark topic post.
+**Everything between the rules is the post, exactly as it should be pasted.
+The notes at the bottom are not part of it.**
 
 **Title:** Muse Spark Open 816B on two DGX Sparks: 6.8-7.0 tok/s and 32K context, measured
 
@@ -79,3 +79,17 @@ https://github.com/jlacroix82/muse-spark-open-2x-dgx-spark
 
 I'm also curious whether a third node gets anyone a materially larger context at
 2-bit, since that's the only reason I can see to add one.
+
+---
+
+## Posting notes (not part of the post)
+
+- Target thread: https://forums.developer.nvidia.com/t/385980 — NVIDIA's "Scale
+  Agentic Coding Workflows with Meta's Muse Spark Open on NVIDIA GB300 NVL72"
+  (jwitsoe, 2026-10-15). Verified 2026-10-16: still 1 post, 60 views, not closed,
+  replyable. Replies are open; the topic is the only Muse Spark thread on the forum.
+- Also usable as a standalone DGX Spark topic if a reply feels like the wrong shape.
+- No internal hostnames, node labels, fabric addresses or file paths appear in the
+  post; nodes are referred to as "head" and "peer".
+- The 2,046 MiB display reservation is attributed to NVIDIA's GB10 documentation,
+  not to our own measurement.
