@@ -84,17 +84,21 @@ I'm also curious whether a third node gets anyone a materially larger context at
 
 ## Posting notes (not part of the post)
 
-- Destination James specified: **a new topic in the DGX Spark / GB10 category**,
-  https://forums.developer.nvidia.com/c/accelerated-computing/dgx-spark-gb10/719
-  — the post below is written to stand alone as a topic opener.
-- Fallback destination: a reply on NVIDIA's Muse Spark Open / GB300 NVL72 thread,
-  https://forums.developer.nvidia.com/t/385980 (verified 2026-10-16: 1 post,
-  60 views, not closed, replyable). It is the only Muse Spark topic on the forum.
-- Automated posting was attempted on 2026-10-16 and is not possible from this
-  session: the login saved for the forum is bound to
-  `forums.developer.nvidia.com`, but the forum uses NVIDIA SSO whose password
-  field lives on `login.nvgs.nvidia.com`, and the vault only fills on the exact
-  bound origin. Filling a password by any other route is out of scope by design.
+- **POSTED 2026-10-16** as a new topic in **DGX Spark / GB10** (category 721) by
+  `jameslacroix`:
+  https://forums.developer.nvidia.com/t/muse-spark-open-816b-on-two-dgx-sparks-6-8-7-0-tok-s-and-32k-context-measured/386058
+- Category note: the URL given as the destination,
+  `/c/accelerated-computing/dgx-spark-gb10/719`, resolves through category **719
+  "DGX Spark / GB10 User Forum"** — that is a read-only *container* (no topics of
+  its own), and topic creation there is refused. The writable discussion
+  categories underneath are **721 "DGX Spark / GB10"** (2,214 topics — where this
+  went) and 723 "DGX Spark / GB10 Projects" (419).
+- Verified as an anonymous visitor after posting: category 721, 1 post, author
+  jameslacroix, the results table and 13 code spans rendered, the repo link
+  intact, no internal identifiers.
+- Optional follow-up not done: a short cross-link reply on NVIDIA's Muse Spark
+  Open launch thread, https://forums.developer.nvidia.com/t/385980 (1 post,
+  60 views at the time; the only Muse Spark topic on the forum outside this one).
 - No internal hostnames, node labels, fabric addresses or file paths appear in the
   post; nodes are referred to as "head" and "peer".
 - The 2,046 MiB display reservation is attributed to NVIDIA's GB10 documentation,
