@@ -1,0 +1,15 @@
+Muse Spark Open 816B-A42B on two DGX Sparks
+Copyright 2026 James LaCroix
+
+Scripts and documentation in this repository are licensed under the Apache
+License, Version 2.0 (see LICENSE).
+
+This repository does not contain model weights, and none are redistributed.
+"Muse Spark Open" and its weights are governed by Meta's Muse Model License;
+fetch the GGUF directly from unsloth/Muse-Spark-Open-816B-A42B-GGUF. Serving is
+performed by llama.cpp (MIT), whose Muse Spark Open support was merged upstream
+on 2026-10-15 (merge commit ba3c05f71da8, shipped as build b11671).
+
+Third-party performance figures quoted in docs/RESULTS.md (Qwen3-Coder-480B and
+Llama-4-Maverick on two Sparks) are other people's published results and are
+attributed as such in place.

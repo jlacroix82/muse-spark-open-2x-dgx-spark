@@ -73,7 +73,7 @@ bash scripts/musespark_rpc.sh      # ggml-rpc-server -H 0.0.0.0 -p 50052 -d CUDA
 ### 4. Serve from the head node
 
 ```bash
-PEER=10.0.1.15 CTX=32768 NP=4 PORT=8080 bash scripts/musespark_serve.sh
+PEER=peer-fabric-ip CTX=32768 NP=4 PORT=8080 bash scripts/musespark_serve.sh
 ```
 
 which runs:
@@ -115,7 +115,9 @@ Client gotchas:
 
 ## Caveats, stated plainly
 
-- **Unmerged upstream support.** Pinned commit, actively changing branch.
+- **Upstream support is new.** Muse Spark Open landed in llama.cpp master on 2026-10-15
+  (`ba3c05f71da8` / `b11671`) after these numbers were taken; expect the
+  architecture to still be settling. Builds at or after that merge are supported.
 - **Slow by design:** ~6.9 tok/s decode, ~263 tok/s prefill on 9k-token prompts. Fine for
   batch/agentic work with patience; not interactive.
 - **Memory ceiling.** ~10 GB free per node while serving. Do not co-schedule anything else on
@@ -124,8 +126,37 @@ Client gotchas:
   (`-c` is the *total* context, split across slots — `-c 32768 -np 4` = 8K/slot): measured
   **14–16 tok/s aggregate vs 6.1 at c=1**, saturating at 3–4 in-flight requests, with
   per-request decode dropping from 7.0 to ~4.1 tok/s.
+- **2-bit fits, but not at a large context.** `UD-IQ2_XXS` loads and serves at 8K with
+  1.90 GiB free on the peer; 32K at that quant needs ~1.53 GiB more than the peer has and was
+  **not run**. `UD-IQ1_M` at 32K is the configuration to use.
 - **Weights are not redistributable** under the Muse Model License — this repo ships scripts
   and numbers only, and fetches from Meta/Unsloth's own repos.
+
+## Measured, in one table
+
+| | |
+|---|---|
+| Decode (any prompt length, n_slots=1) | **6.76–7.01 tok/s** |
+| Prefill | 26 tok/s @ 28 tok → **263 tok/s @ 9,146 tok** |
+| TTFT | 1.08 s → 34.7 s as the prompt grows |
+| Aggregate at `-np 4` | 14–16 tok/s, saturated at 3–4 concurrent |
+| Load | 10 min 48 s (`UD-IQ1_M`), 11 min 52 s (`UD-IQ2_XXS`) |
+| Free memory while serving 32K | ~10 GB head, ~9 GB peer |
+| Functional | tool calls parse; reasoning works and needs a token budget |
+
+Full detail, including the items that are **not** measured, in
+[`docs/RESULTS.md`](docs/RESULTS.md).
+
+## License & credits
+
+- Scripts and docs here: **Apache-2.0** (see `LICENSE` / `NOTICE`).
+- **No weights are redistributed.** Fetch the GGUF from
+  [`unsloth/Muse-Spark-Open-816B-A42B-GGUF`](https://huggingface.co/unsloth/Muse-Spark-Open-816B-A42B-GGUF)
+  (public, ungated); the model itself is under Meta's Muse Model License.
+- Serving is [llama.cpp](https://github.com/ggml-org/llama.cpp) (MIT); Muse Spark Open
+  support merged upstream 2026-10-15.
+- The Qwen3-Coder-480B / Maverick tok/s figures used for scale are other people's
+  published numbers, labelled as such where they appear.
 
 ## Repo layout
 

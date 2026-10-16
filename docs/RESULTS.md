@@ -8,11 +8,11 @@ is explicitly marked as open.
 | Component | Identity |
 |---|---|
 | Hardware | 2 × NVIDIA DGX Spark (GB10), 121.6 GB unified memory each |
-| Fabric | ConnectX-7 200 GbE, `enp1s0f0np0` = 10.0.1.14 / 10.0.1.15, RoCEv2 |
+| Fabric | ConnectX-7 200 GbE, `enp1s0f0np0` = head-fabric-ip / peer-fabric-ip, RoCEv2 |
 | Engine | llama.cpp PR #30616, fork `ServeurpersoCom/llama.cpp`, branch `muse-spark-open`, commit `335916ad3f0cab876a7a3cf16faaaaea28bf9a96` |
 | Build | CUDA 13.0.88, driver 580.173.02, `-DGGML_CUDA=ON -DGGML_RPC=ON -DCMAKE_CUDA_ARCHITECTURES=121a`, build 11678 |
 | Model | `unsloth/Muse-Spark-Open-816B-A42B-GGUF` → `UD-IQ1_M`, 6 shards, 208.9 GB on disk (194.6 GiB) |
-| Serving | `llama-server --rpc 10.0.1.15:50052,127.0.0.1:50052 -ngl 99 -c 32768 -fa on -ctk q8_0 -ctv q8_0 -np 1` |
+| Serving | `llama-server --rpc peer-fabric-ip:50052,127.0.0.1:50052 -ngl 99 -c 32768 -fa on -ctk q8_0 -ctv q8_0 -np 1` |
 
 Because llama.cpp support for this architecture is an **unmerged PR**, none of this works on
 a stock llama.cpp: master registers only `muse-glimmer`.
@@ -45,8 +45,8 @@ This model is 194.6 GiB — bigger than either — so ~6.9 tok/s is consistent w
 
 | Node | Total | Available while serving |
 |---|---|---|
-| head (10.0.1.14) | 121.6 GB | **10.2 GB** |
-| peer (10.0.1.15) | 121.6 GB | **8.8 GB** |
+| head (head-fabric-ip) | 121.6 GB | **10.2 GB** |
+| peer (peer-fabric-ip) | 121.6 GB | **8.8 GB** |
 
 Roughly 97 GiB of weights per node plus KV + compute buffers. This is a near-ceiling
 configuration: two Sparks are the smallest pair that runs this quant.

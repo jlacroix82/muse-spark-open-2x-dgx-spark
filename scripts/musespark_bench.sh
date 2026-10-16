@@ -4,7 +4,19 @@
 set -uo pipefail
 BIN="${BIN:-$HOME/llama.cpp-musespark/build/bin}"
 MODEL_DIR="${MODEL_DIR:-$HOME/models/Muse-Spark-Open-816B-A42B-GGUF/UD-IQ1_M}"
-PEER="${PEER:-10.0.1.15}"
+PEER="${PEER:-}"
+# No default on purpose: a wrong address here means llama-server dials a
+# stranger's box, or silently falls back to single-node.
+if [ -z "$PEER" ]; then
+  echo "set PEER to the peer node's fabric IP (200 GbE interface)" >&2
+  exit 2
+fi
+# No default on purpose: a wrong address here means llama-server dials a
+# stranger's box, or silently falls back to single-node.
+if [ -z "$PEER" ]; then
+  echo "set PEER to the peer node's fabric IP (200 GbE interface)" >&2
+  exit 2
+fi
 OUT="${OUT:-$HOME/musespark_bench.csv}"
 TS="${TS:-}"
 MODEL=$(ls "$MODEL_DIR"/*-00001-of-*.gguf 2>/dev/null | head -1)

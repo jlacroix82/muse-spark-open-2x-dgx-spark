@@ -22,19 +22,19 @@ with CUDA allocations on unified memory.
 
 | Node | Hostname | BIOS | BIOS date | EC fw | MemTotal |
 |---|---|---|---|---|---|
-| x214 | thinkstationpgx-e7e9 | S0QKT0EA | 2026-07-13 | 2.78.24 | 124,546 MiB (121.63 GiB) |
-| x215 | thinkstationpgx-e80f | S0QKT0EA | 2026-07-13 | — | 124,546 MiB |
-| **x216** | **thinkstationpgx-3d30** | **S0QKT09A** | **2025-10-14** | **0.0.1** | **122,502 MiB (119.63 GiB)** |
-| x217 | thinkstationpgx-2f5b | S0QKT0CA | 2026-03-13 | — | 124,546 MiB |
-| x218 | thinkstationpgx-ff39 | S0QKT0EA | 2026-07-13 | — | 124,610 MiB |
-| x219 | thinkstationpgx-f4bf | S0QKT0CA | 2026-03-13 | — | 124,610 MiB |
-| x220 | thinkstationpgx-0212 | S0QKT0CA | 2026-03-13 | — | 124,610 MiB |
-| x221 | thinkstationpgx-0368 | S0QKT0EA | 2026-07-13 | — | 124,610 MiB |
+| head node | head-node | S0QKT0EA | 2026-07-13 | 2.78.24 | 124,546 MiB (121.63 GiB) |
+| peer node | peer-node | S0QKT0EA | 2026-07-13 | — | 124,546 MiB |
+| **third node** | **control-node-3d30** | **S0QKT09A** | **2025-10-14** | **0.0.1** | **122,502 MiB (119.63 GiB)** |
+| spare node | control-node-2f5b | S0QKT0CA | 2026-03-13 | — | 124,546 MiB |
+| fleet node 1 | control-node-ff39 | S0QKT0EA | 2026-07-13 | — | 124,610 MiB |
+| fleet node 2 | control-node-f4bf | S0QKT0CA | 2026-03-13 | — | 124,610 MiB |
+| fleet node 3 | control-node-0212 | S0QKT0CA | 2026-03-13 | — | 124,610 MiB |
+| fleet node 4 | control-node-0368 | S0QKT0EA | 2026-07-13 | — | 124,610 MiB |
 
 Driver is **identical everywhere** (580.173.02, open kernel module) and the kernel is identical
-(6.17.0-1031-nvidia, `init_on_alloc=0 iommu.passthrough=0`). See "The x216 anomaly" below.
+(6.17.0-1031-nvidia, `init_on_alloc=0 iommu.passthrough=0`). See "The third node anomaly" below.
 
-## Idle accounting, in full (x216, nothing loaded)
+## Idle accounting, in full (third node, nothing loaded)
 
 | Bucket | GiB | Notes |
 |---|---|---|
@@ -52,7 +52,7 @@ nodes, so the firmware reservation table can't be read directly.
 
 ## When serving, the model is invisible
 
-This is the trap worth internalising. On x214 while holding the 816B model:
+This is the trap worth internalising. On head node while holding the 816B model:
 
 | Measure | Value |
 |---|---|
@@ -86,22 +86,22 @@ Community discussion adds `vm.vfs_cache_pressure=200` as a durable tuning so the
 reclaiming page cache over anonymous memory. We have not tested either lever on this fleet
 (no passwordless sudo), so treat them as documented-not-measured here.
 
-## The x216 anomaly
+## The third node anomaly
 
-Every other node in the fleet exposes ~2 GiB more RAM to Linux than x216, and the deficit
+Every other node in the fleet exposes ~2 GiB more RAM to Linux than third node, and the deficit
 (**2,044 MiB**) matches the documented GB10 display-scanout reservation (**2,046 MiB**) almost
 exactly.
 
-What differs is firmware, not software: x216 is the only unit on BIOS **S0QKT09A (2025-10-14)**
+What differs is firmware, not software: third node is the only unit on BIOS **S0QKT09A (2025-10-14)**
 while the rest run S0QKT0CA (2026-03-13) or S0QKT0EA (2026-07-13); its **Embedded Controller
 reports 0.0.1** against 2.78.24 on a sibling, and its UEFI device firmware is 2.0.9 vs 2.0.14.
-`fwupdmgr get-updates` on x216 lists pending EC (→3.5.8), TPM (→7.2.4.1) and UEFI device
+`fwupdmgr get-updates` on third node lists pending EC (→3.5.8), TPM (→7.2.4.1) and UEFI device
 firmware (→2.0.14). No fwupd "System Firmware" device is exposed on these Lenovo units, so the
 BIOS itself may need a vendor update path.
 
 **Leading explanation (correlation, well-supported, not proven):** the older firmware still
 carves the ~2 GiB display reserve out of Linux's pool, while newer firmware exposes it. Action
-for whoever owns the fleet: update x216's firmware. Until then x216 has ~2 GiB less headroom
+for whoever owns the fleet: update third node's firmware. Until then third node has ~2 GiB less headroom
 than its siblings — it is the node that will OOM first in a near-ceiling configuration such as
 two-node serving of a 194.6 GiB quant.
 
@@ -133,7 +133,7 @@ weights there (one user moved `lm_head`/`embed_tokens` into it; another doubled 
 2. Budget ~116 GiB usable per node after the kernel/driver baseline; 97.3 GiB of that is
    weights for the IQ1_M quant.
 3. If a load fails at the margin, flush page cache first, then reduce context — in that order.
-4. Prefer the 7 nodes with the newer BIOS as head/peer for near-ceiling work; leave x216 for
+4. Prefer the 7 nodes with the newer BIOS as head/peer for near-ceiling work; leave third node for
    jobs with slack, until its firmware is updated.
 5. Expect `top`/RSS to show nothing about where the model lives. Watch `free -m`, or the DGX
    Dashboard at `http://localhost:11000`.
