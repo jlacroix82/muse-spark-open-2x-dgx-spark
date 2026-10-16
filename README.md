@@ -8,12 +8,19 @@ Verified working: model loads, serves an OpenAI-compatible API, tool calls parse
 works. Measured numbers are in [`docs/RESULTS.md`](docs/RESULTS.md) — every figure there came
 off this hardware.
 
-## Why this needs a fork build
+## Why this needs a fork build (and no longer does)
 
-llama.cpp master does **not** know this architecture — it registers `muse-glimmer` only.
-Muse Spark support lives in **PR #30616** (`ServeurpersoCom/llama.cpp`, branch
-`muse-spark-open`). This recipe pins the exact commit it was measured on; the branch is under
-active development, so treat the pin as part of the recipe, not a suggestion.
+llama.cpp master did **not** know this architecture when this was measured — it registered
+`muse-glimmer` only. Muse Spark support lived in **PR #30616** (`ServeurpersoCom/llama.cpp`,
+branch `muse-spark-open`); this recipe pins the exact commit it was measured on
+(`335916ad3f0cab876a7a3cf16faaaaea28bf9a96`).
+
+**Update 2026-10-16:** PR #30616 **merged into `ggml-org/llama.cpp` master** on
+2026-10-15 21:27Z (merge commit `ba3c05f71da8`, 9 commits, 36 files) and ships in the
+prerelease build `b11671` as *"model: add Muse Spark Open (text, vision and audio)"* — the
+merge adds vision and audio towers, not just text. A plain upstream build at/after `ba3c05f71da8`
+is therefore the supported path now; the fork pin above stays only so the numbers in
+`docs/RESULTS.md` remain reproducible against the exact tree they were taken on.
 
 ## Hard requirement: two nodes, and only two
 
