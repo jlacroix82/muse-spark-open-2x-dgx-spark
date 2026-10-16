@@ -36,7 +36,7 @@ BODY = """Ran `UD-IQ1_M` across two GB10 Sparks with `llama.cpp` RPC over the 20
 Notes that might be useful to others doing this:
 
 - `UD-IQ1_M` at 32K is the configuration to use. `UD-IQ2_XXS` does load and serve
-  - at 8K, with 1.90 GiB free on the peer. At 32K it needs roughly 1.53 GiB more
+  at 8K, with 1.90 GiB free on the peer; at 32K it needs roughly 1.53 GiB more
   than the peer has, so I did not run it. Decode is ~7.0 tok/s at either quant,
   because you are bound on the 42B active parameters, so the extra bit costs
   memory and buys nothing at inference time.
