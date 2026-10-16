@@ -84,11 +84,17 @@ I'm also curious whether a third node gets anyone a materially larger context at
 
 ## Posting notes (not part of the post)
 
-- Target thread: https://forums.developer.nvidia.com/t/385980 — NVIDIA's "Scale
-  Agentic Coding Workflows with Meta's Muse Spark Open on NVIDIA GB300 NVL72"
-  (jwitsoe, 2026-10-15). Verified 2026-10-16: still 1 post, 60 views, not closed,
-  replyable. Replies are open; the topic is the only Muse Spark thread on the forum.
-- Also usable as a standalone DGX Spark topic if a reply feels like the wrong shape.
+- Destination James specified: **a new topic in the DGX Spark / GB10 category**,
+  https://forums.developer.nvidia.com/c/accelerated-computing/dgx-spark-gb10/719
+  — the post below is written to stand alone as a topic opener.
+- Fallback destination: a reply on NVIDIA's Muse Spark Open / GB300 NVL72 thread,
+  https://forums.developer.nvidia.com/t/385980 (verified 2026-10-16: 1 post,
+  60 views, not closed, replyable). It is the only Muse Spark topic on the forum.
+- Automated posting was attempted on 2026-10-16 and is not possible from this
+  session: the login saved for the forum is bound to
+  `forums.developer.nvidia.com`, but the forum uses NVIDIA SSO whose password
+  field lives on `login.nvgs.nvidia.com`, and the vault only fills on the exact
+  bound origin. Filling a password by any other route is out of scope by design.
 - No internal hostnames, node labels, fabric addresses or file paths appear in the
   post; nodes are referred to as "head" and "peer".
 - The 2,046 MiB display reservation is attributed to NVIDIA's GB10 documentation,
