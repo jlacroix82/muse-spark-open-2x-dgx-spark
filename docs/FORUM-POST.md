@@ -6,11 +6,7 @@ The notes at the bottom are not part of it.**
 **Title:** Muse Spark Open 816B on two DGX Sparks: 6.8-7.0 tok/s and 32K context, measured
 
 ---
-
-The launch material is all GB300 NVL72, which is what it was trained on. But the
-question anyone with a Spark on the desk actually has is whether an 816B model
-runs at all, so I measured it instead of guessing. Short answer: yes, on **two**
-Sparks, and it's fine for batch work rather than conversation.
+The launch material is all GB300 NVL72, which is what it was trained on. But the question anyone with a Spark on the desk actually has is whether an 816B model runs at all, so I measured it instead of guessing. Short answer: yes, on **two** Sparks, and it's fine for batch work rather than conversation.
 
 What it took:
 
@@ -19,9 +15,7 @@ What it took:
 - `UD-IQ1_M` from the public unsloth GGUF, 194.6 GiB across 6 shards
 - 32K context, q8_0 K/V, flash attention on
 
-Two nodes is the right count. One can't hold the weights; a third buys you
-context and nothing else. And since `rpc-server` takes no model argument, the
-pair downloads the 195 GB once, not once per node.
+Two nodes is the right count. One can't hold the weights; a third buys you context and nothing else. And since `rpc-server` takes no model argument, the pair downloads the 195 GB once, not once per node.
 
 Numbers, single request:
 
@@ -32,17 +26,9 @@ Numbers, single request:
 | 650 tok | 6.40 s | 102 tok/s | 6.88 tok/s |
 | 9,146 tok | 34.7 s | 263 tok/s | 6.76 tok/s |
 
-Decode sits at 6.8-7.0 tok/s no matter how long the prompt is, which is what you
-expect when you're bandwidth-bound on the 42B active parameters across two
-273 GB/s nodes. For scale, published two-Spark RPC runs get 9.86 tok/s on
-Qwen3-Coder-480B (168 GB) and 13.16 on Maverick (143 GB) — this model is larger
-than either, so the number falls where it should.
+Decode sits at 6.8-7.0 tok/s no matter how long the prompt is, which is what you expect when you're bandwidth-bound on the 42B active parameters across two 273 GB/s nodes. For scale, published two-Spark RPC runs get 9.86 tok/s on Qwen3-Coder-480B (168 GB) and 13.16 on Maverick (143 GB) — this model is larger than either, so the number falls where it should.
 
-Load takes 10 min 48 s (the whole GGUF streams across to the peer). While serving
-32K, each node is down to roughly 9-10 GB free. This is a near-ceiling setup, not
-a comfortable one. Worth knowing before you plan around "128 GB": GB10 documents
-a 2,046 MiB display-scanout reservation, which stops being trivia when you're
-1.9 GiB from the edge.
+Load takes 10 min 48 s (the whole GGUF streams across to the peer). While serving 32K, each node is down to roughly 9-10 GB free. This is a near-ceiling setup, not a comfortable one. Worth knowing before you plan around "128 GB": GB10 documents a 2,046 MiB display-scanout reservation, which stops being trivia when you're 1.9 GiB from the edge.
 
 What works, and where it hurts:
 
@@ -59,26 +45,17 @@ What works, and where it hurts:
   cause; the quantiser keeps the latent projections and attention gate at Q8_0
   for exactly that reason, and I saw no repetition loops at IQ1_M.
 
-Where it stops: `UD-IQ2_XXS` (225.6 GB) does load and serve — at 8K context, with
-**1.90 GiB left on the peer node**. At 32K it needs about 1.53 GiB more than that
-node has, so I didn't run it. So: IQ1_M at 32K with ~10 GB/node spare, or IQ2_XXS
-at 8K. Decode is ~7.0 tok/s either way, because you're bound on active
-parameters, so the extra bit costs memory and buys nothing at inference time.
+Where it stops: `UD-IQ2_XXS` (225.6 GB) does load and serve — at 8K context, with **1.90 GiB left on the peer node**. At 32K it needs about 1.53 GiB more than that node has, so I didn't run it. So: IQ1_M at 32K with ~10 GB/node spare, or IQ2_XXS at 8K. Decode is ~7.0 tok/s either way, because you're bound on active parameters, so the extra bit costs memory and buys nothing at inference time.
 
-Support landed upstream: llama.cpp merged Muse Spark Open on Oct 15 (ships as
-`b11671`, merge commit `ba3c05f71da8`), vision and audio towers included. I
-measured on the pre-merge PR tree (`335916ad3`) and pinned it in my notes so the
-numbers stay reproducible; a plain master build at or after the merge is the
-supported path now. Weights are the public unsloth GGUF rather than Meta's gated
-repo, and the Muse Model License applies to derivatives.
+Support landed upstream: llama.cpp merged Muse Spark Open on Oct 15 (ships as `b11671`, merge commit `ba3c05f71da8`), vision and audio towers included. I measured on the pre-merge PR tree (`335916ad3`) and pinned it in my notes so the numbers stay reproducible; a plain master build at or after the merge is the supported path now. Weights are the public unsloth GGUF rather than Meta's gated repo, and the Muse Model License applies to derivatives.
 
-Build flags, both launch lines, the raw logs and the full measurement table —
-including the items I did *not* measure — are here:
+Build flags, both launch lines, the raw logs and the full measurement table — including the items I did *not* measure — are here:
 
 https://github.com/jlacroix82/muse-spark-open-2x-dgx-spark
 
-I'm also curious whether a third node gets anyone a materially larger context at
-2-bit, since that's the only reason I can see to add one.
+I'm also curious whether a third node gets anyone a materially larger context at 2-bit, since that's the only reason I can see to add one.
+
+---
 
 ---
 
