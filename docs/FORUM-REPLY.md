@@ -72,7 +72,10 @@ numbers stay reproducible; a plain master build at or after the merge is the
 supported path now. Weights are the public unsloth GGUF rather than Meta's gated
 repo, and the Muse Model License applies to derivatives.
 
-Happy to post the exact build flags, the RPC launch lines and the measurement
-scripts if they're useful. I'm also curious whether a third node gets anyone a
-materially larger context at 2-bit, since that's the only reason I can see to
-add one.
+Build flags, both launch lines, the raw logs and the full measurement table —
+including the items I did *not* measure — are here:
+
+https://github.com/jlacroix82/muse-spark-open-2x-dgx-spark
+
+I'm also curious whether a third node gets anyone a materially larger context at
+2-bit, since that's the only reason I can see to add one.
