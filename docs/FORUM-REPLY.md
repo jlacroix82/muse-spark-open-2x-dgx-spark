@@ -40,9 +40,9 @@ than either, so the number falls where it should.
 
 Load takes 10 min 48 s (the whole GGUF streams across to the peer). While serving
 32K, each node is down to roughly 9-10 GB free. This is a near-ceiling setup, not
-a comfortable one. Worth knowing before you plan around "128 GB": a Spark
-reserves 2,046 MiB of unified memory for display scanout, which stops being
-trivia when you're 1.9 GiB from the edge.
+a comfortable one. Worth knowing before you plan around "128 GB": GB10 documents
+a 2,046 MiB display-scanout reservation, which stops being trivia when you're
+1.9 GiB from the edge.
 
 What works, and where it hurts:
 
